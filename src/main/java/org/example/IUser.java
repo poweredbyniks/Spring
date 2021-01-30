@@ -6,4 +6,6 @@ public interface IUser {
     String getName();
 
     String getAddress();
+
+    void getLog();
 }

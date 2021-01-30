@@ -16,4 +16,9 @@ public class MyInterceptor {
         return "и с адресом тоже";
     }
 
+    public void getLog() {
+
+            System.out.println("New method");
+
+    }
 }

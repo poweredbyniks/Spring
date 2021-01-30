@@ -3,7 +3,7 @@ package org.example;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.implementation.MethodDelegation;
 import net.bytebuddy.matcher.ElementMatchers;
-import org.junit.jupiter.api.Assertions;
+import org.apache.log4j.BasicConfigurator;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +25,6 @@ public class AppTest {
             }
             return method.invoke(user, args);
         };
-
         IUser userProxy = (IUser) Proxy.newProxyInstance(user.getClass().getClassLoader(),
                 User.class.getInterfaces(), handler);
         System.out.println(userProxy.getName());
@@ -34,26 +33,25 @@ public class AppTest {
 
     @Test
     public void testProxyInstance() {
-        Logger log = LoggerFactory.getLogger(DynamicInvocationHandler.class);
-
+        BasicConfigurator.configure();
+        Logger log = LoggerFactory.getLogger(User.class);
         Map<String, String> target = new HashMap<>();
-        Map proxyInstance = (Map) Proxy.newProxyInstance(
-                DynamicInvocationHandler.class.getClassLoader(),
-                new Class[]{Map.class},
-                (Object proxy, Method method, Object[] args) -> {
-                    log.error("Invoked method: {} args: {}", method.getName(), args);
-                    return method.invoke(target, args);
-                }
-        );
+        InvocationHandler handler = (Object proxy, Method method, Object[] args) -> {
+            log.info("Invoked method: {} args: {}", method.getName(), args);
+            return method.invoke(target, args);
+        };
+        Map proxyInstance = (Map) Proxy.newProxyInstance(User.class.getClassLoader(), new Class[]{Map.class}, handler);
+
 
         proxyInstance.put("hello", "world");
         proxyInstance.get("hello");
+        proxyInstance.clear();
 
-        Assertions.assertEquals("world", proxyInstance.get("hello"));
+        //Assertions.assertEquals("world", proxyInstance.get("hello"));
     }
 
     @Test
-    public void testByteBuddy() throws IllegalAccessException, InstantiationException {
+    public void testInvokeMethodsByteBuddy() throws IllegalAccessException, InstantiationException {
         User user = new User("Вася", "Home address");
         User userProxy = new ByteBuddy()
                 .subclass(User.class)
@@ -65,5 +63,22 @@ public class AppTest {
                 .newInstance();
 
         System.out.println(userProxy.getName() + " " + userProxy.getAddress());
+    }
+
+    @Test //Not ready
+    public void testLoggingByteBuddy() throws IllegalAccessException, InstantiationException {
+        BasicConfigurator.configure();
+        User user = new User("Вася", "Home address");
+
+        Map<String, String> target = new HashMap<>();
+
+        User userProxy = new ByteBuddy()
+                .subclass(User.class)
+                .make()
+                .load(User.class.getClassLoader())
+                .getLoaded()
+                .newInstance();
+        userProxy.getLog();
+
     }
 }

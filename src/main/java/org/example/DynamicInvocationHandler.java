@@ -23,6 +23,9 @@ public class DynamicInvocationHandler implements InvocationHandler {
         }
     }
 
+    public void name(){
+        System.out.println("NAME");
+    }
     @Override
     public Object invoke(Object proxy, Method method, Object[] args)
             throws Throwable {
