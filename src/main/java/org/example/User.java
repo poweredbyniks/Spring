@@ -34,7 +34,7 @@ public class User implements IUser, InvocationHandler {
         return null;
     }
 
-    public void getLog(){
+    public void getLog() {
         System.out.println("Standart method");
     }
 }

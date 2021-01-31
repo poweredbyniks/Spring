@@ -61,24 +61,24 @@ public class AppTest {
                 .load(User.class.getClassLoader())
                 .getLoaded()
                 .newInstance();
-
         System.out.println(userProxy.getName() + " " + userProxy.getAddress());
     }
 
     @Test //Not ready
     public void testLoggingByteBuddy() throws IllegalAccessException, InstantiationException {
         BasicConfigurator.configure();
-        User user = new User("Вася", "Home address");
-
+        Logger log = LoggerFactory.getLogger(Map.class);
         Map<String, String> target = new HashMap<>();
 
-        User userProxy = new ByteBuddy()
-                .subclass(User.class)
+        Map proxy = new ByteBuddy()
+                .subclass(Map.class)
+                .method(ElementMatchers.named("getLog"))
+                .intercept(MethodDelegation.to(new MapInterceptor(target)))
                 .make()
-                .load(User.class.getClassLoader())
+                .load(Map.class.getClassLoader())
                 .getLoaded()
                 .newInstance();
-        userProxy.getLog();
 
     }
 }
+
