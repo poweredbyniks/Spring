@@ -10,9 +10,9 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.lang.reflect.Proxy;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class AppTest {
 
@@ -64,20 +64,27 @@ public class AppTest {
         System.out.println(userProxy.getName() + " " + userProxy.getAddress());
     }
 
-    @Test //Not ready
-    public void testLoggingByteBuddy() throws IllegalAccessException, InstantiationException {
+    @Test
+    public void testLoggingByteBuddy() throws IllegalAccessException, InstantiationException, NoSuchMethodException {
         BasicConfigurator.configure();
-        Logger log = LoggerFactory.getLogger(Map.class);
-        Map<String, String> target = new HashMap<>();
-
-        Map proxy = new ByteBuddy()
-                .subclass(Map.class)
-                .method(ElementMatchers.named("getLog"))
-                .intercept(MethodDelegation.to(new MapInterceptor(target)))
+        Logger log = LoggerFactory.getLogger(User.class);
+        User user = new User("Вася", "Home address");
+        User proxy = new ByteBuddy()
+                .subclass(User.class)
+                .method(ElementMatchers.named("getName"))
+                .intercept(MethodDelegation.to(new MyInterceptor(user)))
                 .make()
-                .load(Map.class.getClassLoader())
+                .load(User.class.getClassLoader())
                 .getLoaded()
                 .newInstance();
+        List<Parameter> parameters = Arrays.asList(
+                MyInterceptor.class.getMethod("getName").getParameters());
+        Optional<Parameter> parameter = parameters.stream()
+                .filter(Parameter::isNamePresent)
+                .findFirst();
+
+        log.info("Invoked method: {} args: {}", proxy.getClass().getDeclaredMethods(), parameter);
+        System.out.println(proxy.getName());
 
     }
 }
